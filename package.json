@@ -1,0 +1,38 @@
+{
+  "name": "import-jsx",
+  "version": "0.0.0",
+  "description": "Require and transpile JSX on the fly",
+  "license": "MIT",
+  "repository": "vadimdemedes/import-jsx",
+  "author": {
+    "name": "Vadim Demedes",
+    "email": "vdemedes@gmail.com",
+    "url": "github.com/vadimdemedes"
+  },
+  "engines": {
+    "node": ">= 4"
+  },
+  "scripts": {
+    "test": "xo && ava"
+  },
+  "files": [
+    "index.js"
+  ],
+  "keywords": [
+    "react",
+    "jsx",
+    "require",
+    "require-jsx",
+    "import"
+  ],
+  "dependencies": {
+    "buble": "^0.15.2",
+    "caller-path": "^2.0.0",
+    "require-from-string": "^1.2.1",
+    "resolve-from": "^3.0.0"
+  },
+  "devDependencies": {
+    "ava": "^0.19.1",
+    "xo": "^0.18.2"
+  }
+}
