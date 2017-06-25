@@ -15,15 +15,9 @@ const importJsx = (moduleId, options) => {
 	const modulePath = resolveFrom(path.dirname(callerPath()), moduleId);
 	const source = fs.readFileSync(modulePath, 'utf8');
 
-	options = options || {};
-
-	if (!options.pragma) {
-		if (source.indexOf('React') >= 0) {
-			options.pragma = 'React.createElement';
-		} else {
-			options.pragma = 'h';
-		}
-	}
+	options = Object.assign({
+		pragma: source.includes('React') ? 'React.createElement' : 'h'
+	}, options);
 
 	const result = buble.transform(source, {
 		transforms: {
