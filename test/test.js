@@ -46,3 +46,13 @@ test.serial('cache', t => {
 	importJsx(fixturePath('react'));
 	t.true(buble.transform.calledOnce);
 });
+
+test.serial('disable cache', t => {
+	buble.transform.reset();
+
+	importJsx(fixturePath('react'), {cache: false});
+	t.true(buble.transform.calledOnce);
+
+	importJsx(fixturePath('react'), {cache: false});
+	t.true(buble.transform.calledTwice);
+});

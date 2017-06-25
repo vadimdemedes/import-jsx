@@ -67,6 +67,13 @@ Default: `h`
 
 Override [JSX pragma](https://jasonformat.com/wtf-is-jsx/).
 
+##### cache
+
+Type: `boolean`<br>
+Default: `true`
+
+Enable or disable caching of transpiled sources.
+
 ### importJsx.create([options])
 
 Factory method to create a version of `importJsx()` with pre-defined options.

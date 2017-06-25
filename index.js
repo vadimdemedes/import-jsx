@@ -14,17 +14,22 @@ const importJsx = (moduleId, options) => {
 		throw new TypeError('Expected a string');
 	}
 
+	options = Object.assign({
+		pragma: 'h',
+		cache: true
+	}, options);
+
 	const modulePath = resolveFrom(path.dirname(callerPath()), moduleId);
 
-	if (cache.has(modulePath)) {
+	if (options.cache && cache.has(modulePath)) {
 		return cache.get(modulePath);
 	}
 
 	const source = fs.readFileSync(modulePath, 'utf8');
 
-	options = Object.assign({
-		pragma: source.includes('React') ? 'React.createElement' : 'h'
-	}, options);
+	if (source.includes('React')) {
+		options.pragma = 'React.createElement';
+	}
 
 	const result = buble.transform(source, {
 		transforms: {
@@ -49,7 +54,9 @@ const importJsx = (moduleId, options) => {
 	const transpiledSource = `${result.code}\n//# sourceMappingURL=${result.map.toUrl()}`;
 	const m = requireFromString(transpiledSource, modulePath);
 
-	cache.set(modulePath, m);
+	if (options.cache) {
+		cache.set(modulePath, m);
+	}
 
 	return m;
 };
