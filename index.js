@@ -7,12 +7,19 @@ const resolveFrom = require('resolve-from');
 const callerPath = require('caller-path');
 const buble = require('buble');
 
+const cache = new Map();
+
 const importJsx = (moduleId, options) => {
 	if (typeof moduleId !== 'string') {
 		throw new TypeError('Expected a string');
 	}
 
 	const modulePath = resolveFrom(path.dirname(callerPath()), moduleId);
+
+	if (cache.has(modulePath)) {
+		return cache.get(modulePath);
+	}
+
 	const source = fs.readFileSync(modulePath, 'utf8');
 
 	options = Object.assign({
@@ -40,8 +47,11 @@ const importJsx = (moduleId, options) => {
 	});
 
 	const transpiledSource = `${result.code}\n//# sourceMappingURL=${result.map.toUrl()}`;
+	const m = requireFromString(transpiledSource, modulePath);
 
-	return requireFromString(transpiledSource, modulePath);
+	cache.set(modulePath, m);
+
+	return m;
 };
 
 module.exports = importJsx;

@@ -1,5 +1,9 @@
-import test from 'ava';
-import importJsx from '..';
+'use strict';
+
+const buble = require('buble');
+const {spy} = require('sinon');
+const test = require('ava');
+const importJsx = require('..');
 
 const fixturePath = name => `${__dirname}/fixtures/${name}`;
 
@@ -31,4 +35,14 @@ test('create custom fn', t => {
 	t.notThrows(() => {
 		importCustom(fixturePath('custom'));
 	});
+});
+
+test.serial('cache', t => {
+	spy(buble, 'transform');
+
+	importJsx(fixturePath('react'));
+	t.true(buble.transform.calledOnce);
+
+	importJsx(fixturePath('react'));
+	t.true(buble.transform.calledOnce);
 });
