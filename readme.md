@@ -2,7 +2,6 @@
 
 > Require and transpile JSX on the fly
 
-- Uses the lightweight Bublé to transpile source code
 - Doesn't install any `require()` hooks
 - Auto-detects React pragma (`React.createElement`) and falls back to `h` pragma supported by Preact and others
 - Caches transpiled sources by default

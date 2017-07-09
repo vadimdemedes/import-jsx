@@ -1,6 +1,6 @@
 'use strict';
 
-const buble = require('buble');
+const babel = require('babel-core');
 const {spy} = require('sinon');
 const test = require('ava');
 const importJsx = require('..');
@@ -38,21 +38,21 @@ test('create custom fn', t => {
 });
 
 test.serial('cache', t => {
-	spy(buble, 'transform');
+	spy(babel, 'transform');
 
 	importJsx(fixturePath('react'));
-	t.true(buble.transform.calledOnce);
+	t.true(babel.transform.calledOnce);
 
 	importJsx(fixturePath('react'));
-	t.true(buble.transform.calledOnce);
+	t.true(babel.transform.calledOnce);
 });
 
 test.serial('disable cache', t => {
-	buble.transform.reset();
+	babel.transform.reset();
 
 	importJsx(fixturePath('react'), {cache: false});
-	t.true(buble.transform.calledOnce);
+	t.true(babel.transform.calledOnce);
 
 	importJsx(fixturePath('react'), {cache: false});
-	t.true(buble.transform.calledTwice);
+	t.true(babel.transform.calledTwice);
 });

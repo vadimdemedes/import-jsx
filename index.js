@@ -5,7 +5,7 @@ const fs = require('fs');
 const requireFromString = require('require-from-string');
 const resolveFrom = require('resolve-from');
 const callerPath = require('caller-path');
-const buble = require('buble');
+const babel = require('babel-core');
 
 const cache = new Map();
 
@@ -31,28 +31,14 @@ const importJsx = (moduleId, options) => {
 		options.pragma = 'React.createElement';
 	}
 
-	const result = buble.transform(source, {
-		transforms: {
-			arrow: false,
-			classes: false,
-			conciseMethodProperty: false,
-			templateString: false,
-			destructuring: false,
-			parameterDestructuring: false,
-			defaultParameter: false,
-			letConst: false,
-			numericLiteral: false,
-			exponentiation: false,
-			computedProperty: false,
-			unicodeRegExp: false
-		},
-
-		source: modulePath,
-		jsx: options.pragma
+	const result = babel.transform(source, {
+		plugins: [
+			['transform-react-jsx', {pragma: options.pragma, useBuiltIns: true}]
+		],
+		sourceMaps: 'inline'
 	});
 
-	const transpiledSource = `${result.code}\n//# sourceMappingURL=${result.map.toUrl()}`;
-	const m = requireFromString(transpiledSource, modulePath);
+	const m = requireFromString(result.code, modulePath);
 
 	if (options.cache) {
 		cache.set(modulePath, m);
