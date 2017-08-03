@@ -1,6 +1,6 @@
 {
   "name": "import-jsx",
-  "version": "1.2.1",
+  "version": "1.3.0",
   "description": "Require and transpile JSX on the fly",
   "license": "MIT",
   "repository": "vadimdemedes/import-jsx",
