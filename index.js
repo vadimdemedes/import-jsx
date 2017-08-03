@@ -3,6 +3,7 @@
 const path = require('path');
 const fs = require('fs');
 const requireFromString = require('require-from-string');
+const restSpreadTransform = require('babel-plugin-transform-object-rest-spread');
 const jsxTransform = require('babel-plugin-transform-react-jsx');
 const resolveFrom = require('resolve-from');
 const callerPath = require('caller-path');
@@ -34,6 +35,7 @@ const importJsx = (moduleId, options) => {
 
 	const result = babel.transform(source, {
 		plugins: [
+			[restSpreadTransform, {useBuiltIns: true}],
 			[jsxTransform, {pragma: options.pragma, useBuiltIns: true}]
 		],
 		sourceMaps: 'inline'

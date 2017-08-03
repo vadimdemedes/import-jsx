@@ -5,6 +5,7 @@
 - Doesn't install any `require()` hooks
 - Auto-detects React pragma (`React.createElement`) and falls back to `h` pragma supported by Preact and others
 - Caches transpiled sources by default
+- Bundles in [object rest spread](https://babeljs.io/docs/plugins/transform-object-rest-spread/) transform
 
 
 ## Install

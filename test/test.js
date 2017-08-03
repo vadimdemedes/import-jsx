@@ -29,6 +29,12 @@ test('import custom component with custom pragma', t => {
 	});
 });
 
+test('transform object rest spread', t => {
+	t.notThrows(() => {
+		importJsx(fixturePath('spread'));
+	});
+});
+
 test('create custom fn', t => {
 	const importCustom = importJsx.create({pragma: 'x'});
 
