@@ -3,6 +3,7 @@
 const path = require('path');
 const fs = require('fs');
 const requireFromString = require('require-from-string');
+const destructuringTransform = require('babel-plugin-transform-es2015-destructuring');
 const restSpreadTransform = require('babel-plugin-transform-object-rest-spread');
 const jsxTransform = require('babel-plugin-transform-react-jsx');
 const resolveFrom = require('resolve-from');
@@ -36,6 +37,7 @@ const importJsx = (moduleId, options) => {
 	const result = babel.transform(source, {
 		plugins: [
 			[restSpreadTransform, {useBuiltIns: true}],
+			destructuringTransform, // Remove when targeting only Node.js 6+
 			[jsxTransform, {pragma: options.pragma, useBuiltIns: true}]
 		],
 		sourceMaps: 'inline'
