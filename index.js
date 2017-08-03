@@ -10,6 +10,8 @@ const resolveFrom = require('resolve-from');
 const callerPath = require('caller-path');
 const babel = require('babel-core');
 
+const supportsDestructuring = Number(process.versions.node.split('.')[0]) >= 6;
+
 const cache = new Map();
 
 const importJsx = (moduleId, options) => {
@@ -34,12 +36,14 @@ const importJsx = (moduleId, options) => {
 		options.pragma = 'React.createElement';
 	}
 
+	const plugins = [
+		[restSpreadTransform, {useBuiltIns: true}],
+		supportsDestructuring ? null : destructuringTransform,
+		[jsxTransform, {pragma: options.pragma, useBuiltIns: true}]
+	].filter(Boolean);
+
 	const result = babel.transform(source, {
-		plugins: [
-			[restSpreadTransform, {useBuiltIns: true}],
-			destructuringTransform, // Remove when targeting only Node.js 6+
-			[jsxTransform, {pragma: options.pragma, useBuiltIns: true}]
-		],
+		plugins,
 		sourceMaps: 'inline'
 	});
 
