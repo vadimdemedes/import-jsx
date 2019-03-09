@@ -45,7 +45,8 @@ const importJsx = (moduleId, options) => {
 	const result = babel.transform(source, {
 		plugins,
 		filename: modulePath,
-		sourceMaps: 'inline'
+		sourceMaps: 'inline',
+		babelrc: false
 	});
 
 	const m = requireFromString(result.code, modulePath);
