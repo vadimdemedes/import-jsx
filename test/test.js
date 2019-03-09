@@ -62,3 +62,9 @@ test.serial('disable cache', t => {
 	importJsx(fixturePath('react'), {cache: false});
 	t.true(babel.transform.calledTwice);
 });
+
+test('syntax error includes filename', t => {
+	const file = fixturePath('syntax-error.js');
+	const error = t.throws(() => importJsx(file));
+	t.is(error.message.split(':')[0], file);
+});
