@@ -13,7 +13,7 @@
     "node": ">= 4"
   },
   "scripts": {
-    "test": "xo && ava"
+    "test": "xo && nyc --check-coverage --branches=100 --lines=100 --functions=100 --statements=100 ava"
   },
   "files": [
     "index.js"
@@ -35,6 +35,7 @@
   },
   "devDependencies": {
     "ava": "^0.19.1",
+    "nyc": "^13.3.0",
     "sinon": "^2.3.5",
     "xo": "^0.18.2"
   }
