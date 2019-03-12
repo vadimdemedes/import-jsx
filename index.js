@@ -2,17 +2,12 @@
 
 const path = require('path');
 const fs = require('fs');
-const requireFromString = require('require-from-string');
 const destructuringTransform = require('babel-plugin-transform-es2015-destructuring');
 const restSpreadTransform = require('babel-plugin-transform-object-rest-spread');
 const jsxTransform = require('babel-plugin-transform-react-jsx');
 const resolveFrom = require('resolve-from');
 const callerPath = require('caller-path');
 const babel = require('babel-core');
-
-const supportsDestructuring = Number(process.versions.node.split('.')[0]) >= 6;
-
-const cache = new Map();
 
 const importJsx = (moduleId, options) => {
 	if (typeof moduleId !== 'string') {
@@ -21,38 +16,58 @@ const importJsx = (moduleId, options) => {
 
 	options = Object.assign({
 		pragma: 'h',
-		cache: true
+		cache: true,
+		// put on options object for easier testing.
+		supportsDestructuring: Number(process.versions.node.split('.')[0]) >= 6
 	}, options);
 
 	const modulePath = resolveFrom(path.dirname(callerPath()), moduleId);
 
-	if (options.cache && cache.has(modulePath)) {
-		return cache.get(modulePath);
+	if (!options.cache) {
+		delete require.cache[modulePath];
 	}
 
-	const source = fs.readFileSync(modulePath, 'utf8');
+	// if they used .jsx, and there's already a .jsx, then hook there
+	// otherwise, hook node's default .js
+	const ext = path.extname(modulePath);
+	const hookExt = require.extensions[ext] ? ext : '.js';
 
-	if (source.includes('React')) {
-		options.pragma = 'React.createElement';
+	const oldExtension = require.extensions[hookExt];
+
+	require.extensions[hookExt] = (module, filename) => {
+		const oldCompile = module._compile;
+
+		module._compile = (source, filename) => {
+			if (source.includes('React')) {
+				options.pragma = 'React.createElement';
+			}
+
+			const plugins = [
+				[restSpreadTransform, {useBuiltIns: true}],
+				options.supportsDestructuring ? null : destructuringTransform,
+				[jsxTransform, {pragma: options.pragma, useBuiltIns: true}]
+			].filter(Boolean);
+
+			const result = babel.transform(source, {
+				plugins,
+				filename: modulePath,
+				sourceMaps: 'inline',
+				babelrc: false
+			});
+
+			module._compile = oldCompile;
+			module._compile(result.code, modulePath);
+		}
+
+		require.extensions[hookExt] = oldExtension;
+		oldExtension(module, modulePath);
 	}
 
-	const plugins = [
-		[restSpreadTransform, {useBuiltIns: true}],
-		supportsDestructuring ? null : destructuringTransform,
-		[jsxTransform, {pragma: options.pragma, useBuiltIns: true}]
-	].filter(Boolean);
+	const m = require(modulePath);
+	require.extensions[hookExt] = oldExtension;
 
-	const result = babel.transform(source, {
-		plugins,
-		filename: modulePath,
-		sourceMaps: 'inline',
-		babelrc: false
-	});
-
-	const m = requireFromString(result.code, modulePath);
-
-	if (options.cache) {
-		cache.set(modulePath, m);
+	if (!options.cache) {
+		delete require.cache[modulePath];
 	}
 
 	return m;
