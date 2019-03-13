@@ -76,7 +76,7 @@ test('works when loading a module with a non-JS ext', t => {
 
 test('works when destructuring isnt available natively', t => {
 	const file = fixturePath('destructure');
-	const result = importJsx(file, { supportsDestructuring: false });
+	const result = importJsx(file, {supportsDestructuring: false});
 	t.is(result.x, 'a');
 	t.is(result.y, 'b');
 });
