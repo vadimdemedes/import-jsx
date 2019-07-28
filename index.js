@@ -2,7 +2,7 @@
 
 const path = require('path');
 const destructuringTransform = require('@babel/plugin-transform-destructuring');
-const restSpreadTransform = require('@babel/plugin-transform-spread');
+const restSpreadTransform = require('@babel/plugin-proposal-object-rest-spread');
 const jsxTransform = require('@babel/plugin-transform-react-jsx');
 const resolveFrom = require('resolve-from');
 const callerPath = require('caller-path');
