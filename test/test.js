@@ -1,11 +1,10 @@
 'use strict';
 
-const babel = require('babel-core');
-const {spy} = require('sinon');
 const test = require('ava');
 const importJsx = require('..');
 
 const fixturePath = name => `${__dirname}/fixtures/${name}`;
+const isCached = path => Boolean(Object.keys(require.cache).includes(path + '.js'));
 
 test('throw when module id is missing', t => {
 	t.throws(() => importJsx(), TypeError, 'Expected a string');
@@ -44,23 +43,17 @@ test('create custom fn', t => {
 });
 
 test.serial('cache', t => {
-	spy(babel, 'transform');
+	const path = fixturePath('react');
 
-	importJsx(fixturePath('react'));
-	t.true(babel.transform.calledOnce);
-
-	importJsx(fixturePath('react'));
-	t.true(babel.transform.calledOnce);
+	importJsx(path);
+	t.true(isCached(path));
 });
 
 test.serial('disable cache', t => {
-	babel.transform.reset();
+	const path = fixturePath('react');
 
 	importJsx(fixturePath('react'), {cache: false});
-	t.true(babel.transform.calledOnce);
-
-	importJsx(fixturePath('react'), {cache: false});
-	t.true(babel.transform.calledTwice);
+	t.false(isCached(path));
 });
 
 test('syntax error includes filename', t => {
@@ -79,4 +72,10 @@ test('works when destructuring isnt available natively', t => {
 	const result = importJsx(file, {supportsDestructuring: false});
 	t.is(result.x, 'a');
 	t.is(result.y, 'b');
+});
+
+test('parse React fragments', t => {
+	t.notThrows(() => {
+		importJsx(fixturePath('react-fragment'));
+	});
 });

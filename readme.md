@@ -68,6 +68,13 @@ Default: `h`
 
 Override [JSX pragma](https://jasonformat.com/wtf-is-jsx/).
 
+##### pragmaFrag
+
+Type: `string`<br>
+Default: `Fragment`
+
+Override pragma for [JSX fragments](https://babeljs.io/docs/en/babel-plugin-transform-react-jsx#pragmafrag).
+
 ##### cache
 
 Type: `boolean`<br>

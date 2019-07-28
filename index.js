@@ -1,12 +1,12 @@
 'use strict';
 
 const path = require('path');
-const destructuringTransform = require('babel-plugin-transform-es2015-destructuring');
-const restSpreadTransform = require('babel-plugin-transform-object-rest-spread');
-const jsxTransform = require('babel-plugin-transform-react-jsx');
+const destructuringTransform = require('@babel/plugin-transform-destructuring');
+const restSpreadTransform = require('@babel/plugin-transform-spread');
+const jsxTransform = require('@babel/plugin-transform-react-jsx');
 const resolveFrom = require('resolve-from');
 const callerPath = require('caller-path');
-const babel = require('babel-core');
+const babel = require('@babel/core');
 
 const importJsx = (moduleId, options) => {
 	if (typeof moduleId !== 'string') {
@@ -15,6 +15,7 @@ const importJsx = (moduleId, options) => {
 
 	options = Object.assign({
 		pragma: 'h',
+		pragmaFrag: 'Fragment',
 		cache: true,
 		// Put on options object for easier testing.
 		supportsDestructuring: Number(process.versions.node.split('.')[0]) >= 6
@@ -39,15 +40,16 @@ const importJsx = (moduleId, options) => {
 		module._compile = source => {
 			if (source.includes('React')) {
 				options.pragma = 'React.createElement';
+				options.pragmaFrag = 'React.Fragment';
 			}
 
 			const plugins = [
 				[restSpreadTransform, {useBuiltIns: true}],
 				options.supportsDestructuring ? null : destructuringTransform,
-				[jsxTransform, {pragma: options.pragma, useBuiltIns: true}]
+				[jsxTransform, {pragma: options.pragma, pragmaFrag: options.pragmaFrag, useBuiltIns: true}]
 			].filter(Boolean);
 
-			const result = babel.transform(source, {
+			const result = babel.transformSync(source, {
 				plugins,
 				filename: modulePath,
 				sourceMaps: 'inline',
