@@ -53,7 +53,8 @@ const importJsx = (moduleId, options) => {
 				plugins,
 				filename: modulePath,
 				sourceMaps: 'inline',
-				babelrc: false
+				babelrc: false,
+				configFile: false
 			});
 
 			module._compile = oldCompile;
