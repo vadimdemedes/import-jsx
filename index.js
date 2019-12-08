@@ -1,12 +1,10 @@
 'use strict';
 
 const path = require('path');
-const destructuringTransform = require('@babel/plugin-transform-destructuring');
-const restSpreadTransform = require('@babel/plugin-proposal-object-rest-spread');
-const jsxTransform = require('@babel/plugin-transform-react-jsx');
 const resolveFrom = require('resolve-from');
 const callerPath = require('caller-path');
-const babel = require('@babel/core');
+const cache = require('./cache');
+const version = require('./package.json').version;
 
 const importJsx = (moduleId, options) => {
 	if (typeof moduleId !== 'string') {
@@ -38,26 +36,15 @@ const importJsx = (moduleId, options) => {
 		const oldCompile = module._compile;
 
 		module._compile = source => {
-			if (source.includes('React')) {
-				options.pragma = 'React.createElement';
-				options.pragmaFrag = 'React.Fragment';
-			}
-
-			const plugins = [
-				[restSpreadTransform, {useBuiltIns: true}],
-				options.supportsDestructuring ? null : destructuringTransform,
-				[jsxTransform, {pragma: options.pragma, pragmaFrag: options.pragmaFrag, useBuiltIns: true}]
-			].filter(Boolean);
-
-			const result = babel.transformSync(source, {
-				plugins,
-				filename: modulePath,
-				sourceMaps: 'inline',
-				babelrc: false
+			const result = cache({
+				modulePath,
+				options,
+				source,
+				version
 			});
 
 			module._compile = oldCompile;
-			module._compile(result.code, modulePath);
+			module._compile(result, modulePath);
 		};
 
 		require.extensions[hookExt] = oldExtension;
