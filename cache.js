@@ -52,7 +52,7 @@ const filename = (source, options, version) => {
 
 	hash.update(contents);
 
-	return hash.digest('hex') + '.json';
+	return hash.digest('hex') + '.js';
 };
 
 /**
@@ -63,8 +63,8 @@ const filename = (source, options, version) => {
  */
 const handleCache = (directory, params) => {
 	const {
-    modulePath,
-    options,
+		modulePath,
+		options,
 		source,
 		version
 	} = params;
