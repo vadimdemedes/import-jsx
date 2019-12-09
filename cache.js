@@ -94,11 +94,9 @@ const handleCache = (directory, params) => {
  * @param  {Object}   params.options    Options passed to importJsx
  * @param  {String}   params.version    Version of import-jsx
  */
-
 module.exports = params => {
 	if (directory === null) {
-		directory =
-			findCacheDir({name: 'import-jsx'}) || os.tmpdir();
+		directory = findCacheDir({name: 'import-jsx'}) || os.tmpdir();
 	}
 
 	return handleCache(directory, params);
