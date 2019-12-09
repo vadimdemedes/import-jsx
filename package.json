@@ -16,7 +16,9 @@
     "test": "xo && nyc --check-coverage --branches=100 --lines=100 --functions=100 --statements=100 --exclude=cache.js --exclude=test ava"
   },
   "files": [
-    "index.js"
+    "index.js",
+    "cache.js",
+    "transform.js"
   ],
   "keywords": [
     "react",
