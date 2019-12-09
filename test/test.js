@@ -1,7 +1,14 @@
 'use strict';
 
+const os = require('os');
 const test = require('ava');
+const findCacheDir = require('find-cache-dir');
+const rimraf = require('rimraf');
 const importJsx = require('..');
+
+// Clear cache
+const cacheDirectory = findCacheDir({name: 'import-jsx'}) || os.tmpdir();
+rimraf.sync(cacheDirectory);
 
 const fixturePath = name => `${__dirname}/fixtures/${name}`;
 const isCached = path => Boolean(Object.keys(require.cache).includes(path + '.js'));
