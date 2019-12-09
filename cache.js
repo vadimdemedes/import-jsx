@@ -14,29 +14,6 @@ const transform = require('./transform');
 let directory = null;
 
 /**
- * Read the contents from the file.
- *
- * @params {String} filename
- */
-const read = filename => {
-	const data = fs.readFileSync(filename);
-
-	return JSON.parse(data.toString());
-};
-
-/**
- * Write contents into a file.
- *
- * @params {String} filename
- * @params {String} result
- */
-const write = (filename, result) => {
-	const content = JSON.stringify(result);
-
-	return fs.writeFileSync(filename, content);
-};
-
-/**
  * Build the filename for the cached file
  *
  * @param  {String} source  Original contents of the file to be cached
@@ -74,7 +51,7 @@ const handleCache = (directory, params) => {
 	try {
 		// No errors mean that the file was previously cached
 		// we just need to return it
-		return read(file);
+		return fs.readFileSync(file).toString();
 	} catch (err) {}
 
 	const fallback = directory !== os.tmpdir();
@@ -95,7 +72,7 @@ const handleCache = (directory, params) => {
 	const result = transform(source, options, modulePath);
 
 	try {
-		write(file, result);
+		fs.writeFileSync(file, result);
 	} catch (err) {
 		if (fallback) {
 			// Fallback to tmpdir if node_modules folder not writable
