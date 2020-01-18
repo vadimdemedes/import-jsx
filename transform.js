@@ -26,7 +26,8 @@ const transform = (source, options, modulePath) => {
 		plugins,
 		filename: modulePath,
 		sourceMaps: 'inline',
-		babelrc: false
+		babelrc: false,
+		configFile: false
 	});
 
 	return result.code;
