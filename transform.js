@@ -11,6 +11,7 @@ const transform = (source, options, modulePath) => {
 		restSpreadTransform = require('@babel/plugin-proposal-object-rest-spread');
 		jsxTransform = require('@babel/plugin-transform-react-jsx');
 	}
+
 	if (source.includes('React')) {
 		options.pragma = 'React.createElement';
 		options.pragmaFrag = 'React.Fragment';

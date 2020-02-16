@@ -26,12 +26,6 @@ let directory;
 const filename = (source, options, version) => {
 	const hash = crypto.createHash('md4');
 	const contents = JSON.stringify({source, options, version});
- 	hash.update(contents);
- 	
- 	return hash.digest('hex') + '.js';
-
-	const contents = JSON.stringify({source, options, version});
-
 	hash.update(contents);
 
 	return hash.digest('hex') + '.js';
@@ -69,7 +63,7 @@ const handleCache = (directory, params) => {
 			return handleCache(os.tmpdir(), params);
 		}
 
-		throw err;
+		throw error;
 	}
 
 	// Otherwise just transform the file
@@ -84,7 +78,7 @@ const handleCache = (directory, params) => {
 			return handleCache(os.tmpdir(), params);
 		}
 
-		throw err;
+		throw error;
 	}
 
 	return result;
