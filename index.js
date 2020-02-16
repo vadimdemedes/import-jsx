@@ -76,6 +76,7 @@ const importJsx = (moduleId, options) => {
 };
 
 module.exports = importJsx;
+module.exports.default = importJsx;
 
 module.exports.create = options => {
 	return moduleId => importJsx(moduleId, options);
