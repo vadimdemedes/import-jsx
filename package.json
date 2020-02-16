@@ -33,7 +33,7 @@
     "@babel/plugin-transform-destructuring": "^7.5.0",
     "@babel/plugin-transform-react-jsx": "^7.3.0",
     "caller-path": "^2.0.0",
-    "find-cache-dir": "^2.1.0",
+    "find-cache-dir": "^3.2.0",
     "mkdirp": "^0.5.1",
     "resolve-from": "^3.0.0",
     "rimraf": "^3.0.0"
