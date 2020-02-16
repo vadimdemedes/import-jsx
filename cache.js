@@ -1,3 +1,4 @@
+'use strict';
 /**
  * Filesystem Cache
  *
@@ -11,7 +12,7 @@ const mkdirp = require('mkdirp');
 const findCacheDir = require('find-cache-dir');
 const transform = require('./transform');
 
-let directory = null;
+let directory;
 
 /**
  * Build the filename for the cached file
@@ -24,6 +25,10 @@ let directory = null;
  */
 const filename = (source, options, version) => {
 	const hash = crypto.createHash('md4');
+	const contents = JSON.stringify({source, options, version});
+ 	hash.update(contents);
+ 	
+ 	return hash.digest('hex') + '.js';
 
 	const contents = JSON.stringify({source, options, version});
 
@@ -52,14 +57,14 @@ const handleCache = (directory, params) => {
 		// No errors mean that the file was previously cached
 		// we just need to return it
 		return fs.readFileSync(file).toString();
-	} catch (err) {}
+	} catch (error) {}
 
 	const fallback = directory !== os.tmpdir();
 
 	// Make sure the directory exists.
 	try {
 		mkdirp.sync(directory);
-	} catch (err) {
+	} catch (error) {
 		if (fallback) {
 			return handleCache(os.tmpdir(), params);
 		}
@@ -73,7 +78,7 @@ const handleCache = (directory, params) => {
 
 	try {
 		fs.writeFileSync(file, result);
-	} catch (err) {
+	} catch (error) {
 		if (fallback) {
 			// Fallback to tmpdir if node_modules folder not writable
 			return handleCache(os.tmpdir(), params);
@@ -95,7 +100,7 @@ const handleCache = (directory, params) => {
  * @param  {String}   params.version    Version of import-jsx
  */
 module.exports = params => {
-	if (directory === null) {
+	if (!directory) {
 		directory = findCacheDir({name: 'import-jsx'}) || os.tmpdir();
 	}
 
