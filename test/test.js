@@ -81,6 +81,12 @@ test('works when destructuring isnt available natively', t => {
 	t.is(result.y, 'b');
 });
 
+test('parse React fragments', t => {
+	t.notThrows(() => {
+		importJsx(fixturePath('react-fragment'));
+	});
+});
+
 const diskCacheFile = `${diskCacheDirectory}/f478c8d5f1d242d6e659f8c40f33374c.js`;
 
 test('creates appropriate cache file on disk', t => {
