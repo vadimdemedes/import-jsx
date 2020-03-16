@@ -51,19 +51,19 @@ const handleCache = (directory, params) => {
 		// No errors mean that the file was previously cached
 		// we just need to return it
 		return fs.readFileSync(file).toString();
-	} catch (error) {}
+	} catch (err) {}
 
 	const fallback = directory !== os.tmpdir();
 
 	// Make sure the directory exists.
 	try {
 		mkdirp.sync(directory);
-	} catch (error) {
+	} catch (err) {
 		if (fallback) {
 			return handleCache(os.tmpdir(), params);
 		}
 
-		throw error;
+		throw err;
 	}
 
 	// Otherwise just transform the file
@@ -72,13 +72,13 @@ const handleCache = (directory, params) => {
 
 	try {
 		fs.writeFileSync(file, result);
-	} catch (error) {
+	} catch (err) {
 		if (fallback) {
 			// Fallback to tmpdir if node_modules folder not writable
 			return handleCache(os.tmpdir(), params);
 		}
 
-		throw error;
+		throw err;
 	}
 
 	return result;
