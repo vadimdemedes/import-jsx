@@ -6,12 +6,18 @@ const findCacheDir = require('find-cache-dir');
 const rimraf = require('rimraf');
 const importJsx = require('..');
 
-// Clear disk cache
-const diskCacheDirectory = findCacheDir({name: 'import-jsx'});
-rimraf.sync(diskCacheDirectory);
-
 const fixturePath = name => `${__dirname}/fixtures/${name}`;
 const isCached = path => Boolean(Object.keys(require.cache).includes(path + '.js'));
+
+const diskCacheDirectory = findCacheDir({name: 'import-jsx'});
+const clearDiskCache = () => {
+	rimraf.sync(diskCacheDirectory);
+};
+
+// Hacky - delete from memory cache, so it will use the disk cache
+const deleteFromMemoryCache = name => {
+	delete require.cache[`${fixturePath(name)}.js`];
+};
 
 test('throw when module id is missing', t => {
 	t.throws(() => importJsx(), TypeError, 'Expected a string');
@@ -87,26 +93,46 @@ test('parse React fragments', t => {
 	});
 });
 
-const diskCacheFile = `${diskCacheDirectory}/f478c8d5f1d242d6e659f8c40f33374c.js`;
+const diskCacheFile = `${diskCacheDirectory}/52b036e6b962bb90970618d299713122.js`;
 
-test('creates appropriate cache file on disk', t => {
+test('creates appropriate disk cache file', t => {
+	clearDiskCache();
+
 	t.false(fs.existsSync(diskCacheFile));
 
-	importJsx(fixturePath('for-cache'), {cache: false});
+	importJsx(fixturePath('for-cache'));
 
 	t.true(fs.existsSync(diskCacheFile));
 });
 
-test('uses cache file from disk', t => {
-	const text = importJsx(fixturePath('for-cache'), {cache: false});
+test('uses disk cache', t => {
+	clearDiskCache();
+
+	deleteFromMemoryCache('for-cache');
+	const text = importJsx(fixturePath('for-cache'));
 	t.is(text, 'For testing the disk cache!');
 
 	// Alter contents in cache
 	const contents = fs.readFileSync(diskCacheFile, 'utf8');
 	fs.writeFileSync(diskCacheFile, contents.replace('For testing', 'For really testing'));
 
-	const text2 = importJsx(fixturePath('for-cache'), {cache: false});
+	deleteFromMemoryCache('for-cache');
+	const text2 = importJsx(fixturePath('for-cache'));
 	t.is(text2, 'For really testing the disk cache!');
+});
 
-	rimraf.sync(diskCacheFile);
+test('does not use disk cache when cache option is false', t => {
+	clearDiskCache();
+
+	deleteFromMemoryCache('for-cache');
+	const text = importJsx(fixturePath('for-cache'));
+	t.is(text, 'For testing the disk cache!');
+
+	// Alter contents in cache
+	const contents = fs.readFileSync(diskCacheFile, 'utf8');
+	fs.writeFileSync(diskCacheFile, contents.replace('For testing', 'For really testing'));
+
+	deleteFromMemoryCache('for-cache');
+	const text2 = importJsx(fixturePath('for-cache'), {cache: false});
+	t.is(text2, 'For testing the disk cache!');
 });

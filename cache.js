@@ -45,6 +45,10 @@ const handleCache = (directory, params) => {
 		version
 	} = params;
 
+	if (!options.cache) {
+		return transform(source, options, modulePath);
+	}
+
 	const file = path.join(directory, filename(source, options, version));
 
 	try {
