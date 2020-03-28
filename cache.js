@@ -4,7 +4,7 @@ const fs = require('fs');
 const os = require('os');
 const path = require('path');
 const crypto = require('crypto');
-const mkdirp = require('mkdirp');
+const makeDir = require('make-dir');
 const findCacheDir = require('find-cache-dir');
 const transform = require('./transform');
 
@@ -53,7 +53,7 @@ const handleCache = (directory, parameters) => {
 
 	// Make sure the directory exists.
 	try {
-		mkdirp.sync(directory);
+		makeDir.sync(directory);
 	} catch (error) {
 		if (fallback) {
 			return handleCache(os.tmpdir(), parameters);
