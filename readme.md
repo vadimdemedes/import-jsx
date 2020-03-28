@@ -23,7 +23,7 @@ const preactComponent = importJsx('./preact');
 const customComponent = importJsx('./custom', {pragma: 'x'});
 ```
 
-**react.js**
+**React**
 
 ```jsx
 const React = require('react');
@@ -31,7 +31,7 @@ const React = require('react');
 module.exports = <div />;
 ```
 
-**preact.js**
+**Preact**
 
 ```jsx
 const {h} = require('preact');
@@ -39,7 +39,7 @@ const {h} = require('preact');
 module.exports = <div />;
 ```
 
-**custom.js**
+**Any JSX pragma**
 
 ```jsx
 const x = (tagName, attrs, ...children) => {};
