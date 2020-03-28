@@ -1,7 +1,6 @@
 'use strict';
-
 const React = {createElement: () => {}};
 
-<div/>;
+<div />;
 
-module.exports = { exty: true };
+module.exports = {exty: true};

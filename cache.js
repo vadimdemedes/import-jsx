@@ -31,15 +31,10 @@ const filename = (source, options, version) => {
  * Handle the cache
  *
  * @params {String} directory
- * @params {Object} params
+ * @params {Object} parameters
  */
-const handleCache = (directory, params) => {
-	const {
-		modulePath,
-		options,
-		source,
-		version
-	} = params;
+const handleCache = (directory, parameters) => {
+	const {modulePath, options, source, version} = parameters;
 
 	if (!options.cache) {
 		return transform(source, options, modulePath);
@@ -51,6 +46,7 @@ const handleCache = (directory, params) => {
 		// No errors mean that the file was previously cached
 		// we just need to return it
 		return fs.readFileSync(file).toString();
+		// eslint-disable-next-line no-unused-vars
 	} catch (error) {}
 
 	const fallback = directory !== os.tmpdir();
@@ -60,7 +56,7 @@ const handleCache = (directory, params) => {
 		mkdirp.sync(directory);
 	} catch (error) {
 		if (fallback) {
-			return handleCache(os.tmpdir(), params);
+			return handleCache(os.tmpdir(), parameters);
 		}
 
 		throw error;
@@ -75,7 +71,7 @@ const handleCache = (directory, params) => {
 	} catch (error) {
 		if (fallback) {
 			// Fallback to tmpdir if node_modules folder not writable
-			return handleCache(os.tmpdir(), params);
+			return handleCache(os.tmpdir(), parameters);
 		}
 
 		throw error;
@@ -87,16 +83,16 @@ const handleCache = (directory, params) => {
 /**
  * Retrieve file from cache, or create a new one for future reads
  *
- * @param  {Object}   params
- * @param  {String}   params.modulePath
- * @param  {String}   params.source     Original contents of the file to be cached
- * @param  {Object}   params.options    Options passed to importJsx
- * @param  {String}   params.version    Version of import-jsx
+ * @param  {Object}   parameters
+ * @param  {String}   parameters.modulePath
+ * @param  {String}   parameters.source     Original contents of the file to be cached
+ * @param  {Object}   parameters.options    Options passed to importJsx
+ * @param  {String}   parameters.version    Version of import-jsx
  */
-module.exports = params => {
+module.exports = parameters => {
 	if (!directory) {
 		directory = findCacheDir({name: 'import-jsx'}) || os.tmpdir();
 	}
 
-	return handleCache(directory, params);
+	return handleCache(directory, parameters);
 };

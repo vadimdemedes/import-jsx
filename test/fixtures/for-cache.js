@@ -1,3 +1,2 @@
 'use strict';
-
-module.exports = "For testing the disk cache!";
+module.exports = 'For testing the disk cache!';

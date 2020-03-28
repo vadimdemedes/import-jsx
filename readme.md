@@ -1,4 +1,4 @@
-# import-jsx [![Build Status](https://travis-ci.org/vadimdemedes/import-jsx.svg?branch=master)](https://travis-ci.org/vadimdemedes/import-jsx)
+# import-jsx ![Build Status](https://github.com/vadimdemedes/import-jsx/workflows/test/badge.svg)
 
 > Require and transpile JSX on the fly
 
@@ -7,13 +7,11 @@
 - Caches transpiled sources by default
 - Bundles in [object rest spread](https://babeljs.io/docs/plugins/transform-object-rest-spread/) transform
 
-
 ## Install
 
 ```
 $ npm install --save import-jsx
 ```
-
 
 ## Usage
 
@@ -30,7 +28,7 @@ const customComponent = importJsx('./custom', {pragma: 'x'});
 ```jsx
 const React = require('react');
 
-module.exports = <div/>;
+module.exports = <div />;
 ```
 
 **preact.js**
@@ -38,7 +36,7 @@ module.exports = <div/>;
 ```jsx
 const {h} = require('preact');
 
-module.exports = <div/>;
+module.exports = <div />;
 ```
 
 **custom.js**
@@ -46,7 +44,7 @@ module.exports = <div/>;
 ```jsx
 const x = (tagName, attrs, ...children) => {};
 
-module.exports = <div/>;
+module.exports = <div />;
 ```
 
 ## API
@@ -80,7 +78,7 @@ Override pragma for [JSX fragments](https://babeljs.io/docs/en/babel-plugin-tran
 Type: `boolean`<br>
 Default: `true`
 
-Enable or disable caching of transpiled sources.
+Cache transpiled source code.
 
 ### importJsx.create([options])
 
@@ -106,7 +104,3 @@ const importJsx = require('import-jsx').create({pragma: 'x'});
 importJsx('./a');
 importJsx('./b');
 ```
-
-## License
-
-MIT © [Vadim Demedes](https://github.com/vadimdemedes)

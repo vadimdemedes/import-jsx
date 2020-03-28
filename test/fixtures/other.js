@@ -1,5 +1,4 @@
 'use strict';
-
 const h = () => {};
 
-<div/>;
+<div />;

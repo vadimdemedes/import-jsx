@@ -1,23 +1,21 @@
 'use strict';
-
 const path = require('path');
 const resolveFrom = require('resolve-from');
 const callerPath = require('caller-path');
 const cache = require('./cache');
-const version = require('./package.json').version;
+const {version} = require('./package.json');
 
 const importJsx = (moduleId, options) => {
 	if (typeof moduleId !== 'string') {
 		throw new TypeError('Expected a string');
 	}
 
-	options = Object.assign({
+	options = {
 		pragma: 'h',
 		pragmaFrag: 'Fragment',
 		cache: true,
-		// Put on options object for easier testing.
-		supportsDestructuring: Number(process.versions.node.split('.')[0]) >= 6
-	}, options);
+		...options
+	};
 
 	const modulePath = resolveFrom(path.dirname(callerPath()), moduleId);
 

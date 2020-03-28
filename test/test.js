@@ -1,5 +1,4 @@
 'use strict';
-
 const fs = require('fs');
 const test = require('ava');
 const findCacheDir = require('find-cache-dir');
@@ -7,12 +6,9 @@ const rimraf = require('rimraf');
 const importJsx = require('..');
 
 const fixturePath = name => `${__dirname}/fixtures/${name}`;
-const isCached = path => Boolean(Object.keys(require.cache).includes(path + '.js'));
-
+const isCached = path => Object.keys(require.cache).includes(path + '.js');
 const diskCacheDirectory = findCacheDir({name: 'import-jsx'});
-const clearDiskCache = () => {
-	rimraf.sync(diskCacheDirectory);
-};
+const clearDiskCache = () => rimraf.sync(diskCacheDirectory);
 
 // Hacky - delete from memory cache, so it will use the disk cache
 const deleteFromMemoryCache = name => {
@@ -38,12 +34,6 @@ test('import other component and use `h` pragma', t => {
 test('import custom component with custom pragma', t => {
 	t.notThrows(() => {
 		importJsx(fixturePath('custom'), {pragma: 'x'});
-	});
-});
-
-test('transform object rest spread', t => {
-	t.notThrows(() => {
-		importJsx(fixturePath('spread'));
 	});
 });
 
@@ -80,57 +70,52 @@ test('works when loading a module with a non-JS ext', t => {
 	t.true(importJsx(file).exty);
 });
 
-test('works when destructuring isnt available natively', t => {
-	const file = fixturePath('destructure');
-	const result = importJsx(file, {supportsDestructuring: false});
-	t.is(result.x, 'a');
-	t.is(result.y, 'b');
-});
-
 test('parse React fragments', t => {
 	t.notThrows(() => {
 		importJsx(fixturePath('react-fragment'));
 	});
 });
 
-const diskCacheFile = `${diskCacheDirectory}/52b036e6b962bb90970618d299713122.js`;
+const diskCacheFile = `${diskCacheDirectory}/5c82bbaccbc27fbc02ea951120874521.js`;
 
 test('creates appropriate disk cache file', t => {
 	clearDiskCache();
-
 	t.false(fs.existsSync(diskCacheFile));
 
 	importJsx(fixturePath('for-cache'));
-
 	t.true(fs.existsSync(diskCacheFile));
 });
 
-test('uses disk cache', t => {
+test('use disk cache', t => {
 	clearDiskCache();
 
 	deleteFromMemoryCache('for-cache');
 	const text = importJsx(fixturePath('for-cache'));
 	t.is(text, 'For testing the disk cache!');
 
-	// Alter contents in cache
 	const contents = fs.readFileSync(diskCacheFile, 'utf8');
-	fs.writeFileSync(diskCacheFile, contents.replace('For testing', 'For really testing'));
+	fs.writeFileSync(
+		diskCacheFile,
+		contents.replace('For testing', 'For really testing')
+	);
 
 	deleteFromMemoryCache('for-cache');
 	const text2 = importJsx(fixturePath('for-cache'));
 	t.is(text2, 'For really testing the disk cache!');
 });
 
-test('does not use disk cache when cache option is false', t => {
+test('avoid use disk cache when cache is disabled', t => {
 	clearDiskCache();
 
 	deleteFromMemoryCache('for-cache');
 	const text = importJsx(fixturePath('for-cache'));
 	t.is(text, 'For testing the disk cache!');
 
-	// Alter contents in cache
 	const contents = fs.readFileSync(diskCacheFile, 'utf8');
-	fs.writeFileSync(diskCacheFile, contents.replace('For testing', 'For really testing'));
+	fs.writeFileSync(
+		diskCacheFile,
+		contents.replace('For testing', 'For really testing')
+	);
 
 	deleteFromMemoryCache('for-cache');
 	const text2 = importJsx(fixturePath('for-cache'), {cache: false});

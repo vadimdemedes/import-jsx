@@ -10,10 +10,10 @@
     "url": "github.com/vadimdemedes"
   },
   "engines": {
-    "node": ">= 8"
+    "node": ">=10"
   },
   "scripts": {
-    "test": "xo && nyc --check-coverage --branches=100 --lines=100 --functions=100 --statements=100 --exclude=cache.js --exclude=test ava"
+    "test": "xo && ava"
   },
   "files": [
     "index.js",
@@ -40,7 +40,22 @@
   },
   "devDependencies": {
     "ava": "^0.19.1",
-    "nyc": "^13.3.0",
-    "xo": "^0.18.2"
+    "prettier": "^2.0.2",
+    "xo": "^0.28.1"
+  },
+  "prettier": {
+    "tabs": true,
+    "singleQuote": true,
+    "trailingComma": "none",
+    "bracketSpacing": false,
+    "arrowParens": "avoid"
+  },
+  "xo": {
+    "ignore": [
+      "test/fixtures"
+    ],
+    "rules": {
+      "node/no-deprecated-api": "off"
+    }
   }
 }
