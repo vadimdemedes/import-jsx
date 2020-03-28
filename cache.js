@@ -1,9 +1,5 @@
 'use strict';
-/**
- * Filesystem Cache
- *
- * Based on https://github.com/babel/babel-loader/blob/15df92fafd58ec53ba88efa22de7b2cee5e65fcc/src/cache.js
- */
+// Based on https://github.com/babel/babel-loader/blob/15df92fafd58ec53ba88efa22de7b2cee5e65fcc/src/cache.js
 const fs = require('fs');
 const os = require('os');
 const path = require('path');
@@ -55,19 +51,19 @@ const handleCache = (directory, params) => {
 		// No errors mean that the file was previously cached
 		// we just need to return it
 		return fs.readFileSync(file).toString();
-	} catch (err) {}
+	} catch (error) {}
 
 	const fallback = directory !== os.tmpdir();
 
 	// Make sure the directory exists.
 	try {
 		mkdirp.sync(directory);
-	} catch (err) {
+	} catch (error) {
 		if (fallback) {
 			return handleCache(os.tmpdir(), params);
 		}
 
-		throw err;
+		throw error;
 	}
 
 	// Otherwise just transform the file
@@ -76,13 +72,13 @@ const handleCache = (directory, params) => {
 
 	try {
 		fs.writeFileSync(file, result);
-	} catch (err) {
+	} catch (error) {
 		if (fallback) {
 			// Fallback to tmpdir if node_modules folder not writable
 			return handleCache(os.tmpdir(), params);
 		}
 
-		throw err;
+		throw error;
 	}
 
 	return result;
