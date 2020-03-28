@@ -10,7 +10,7 @@
     "url": "github.com/vadimdemedes"
   },
   "engines": {
-    "node": ">= 4"
+    "node": ">= 8"
   },
   "scripts": {
     "test": "xo && nyc --check-coverage --branches=100 --lines=100 --functions=100 --statements=100 --exclude=cache.js --exclude=test ava"
