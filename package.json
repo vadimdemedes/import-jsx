@@ -13,10 +13,12 @@
     "node": ">= 4"
   },
   "scripts": {
-    "test": "xo && nyc --check-coverage --branches=100 --lines=100 --functions=100 --statements=100 ava"
+    "test": "xo && nyc --check-coverage --branches=100 --lines=100 --functions=100 --statements=100 --exclude=cache.js --exclude=test ava"
   },
   "files": [
-    "index.js"
+    "index.js",
+    "cache.js",
+    "transform.js"
   ],
   "keywords": [
     "react",
@@ -31,7 +33,10 @@
     "@babel/plugin-transform-destructuring": "^7.5.0",
     "@babel/plugin-transform-react-jsx": "^7.3.0",
     "caller-path": "^2.0.0",
-    "resolve-from": "^3.0.0"
+    "find-cache-dir": "^3.2.0",
+    "mkdirp": "^0.5.1",
+    "resolve-from": "^3.0.0",
+    "rimraf": "^3.0.0"
   },
   "devDependencies": {
     "ava": "^0.19.1",
