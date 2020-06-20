@@ -1,9 +1,11 @@
 'use strict';
 const fs = require('fs');
+const crypto = require('crypto');
 const test = require('ava');
 const findCacheDir = require('find-cache-dir');
 const rimraf = require('rimraf');
 const importJsx = require('..');
+const packageJson = require('../package.json');
 
 const fixturePath = name => `${__dirname}/fixtures/${name}`;
 const isCached = path => Object.keys(require.cache).includes(path + '.js');
@@ -76,7 +78,18 @@ test('parse React fragments', t => {
 	});
 });
 
-const diskCacheFile = `${diskCacheDirectory}/5c82bbaccbc27fbc02ea951120874521.js`;
+const contents = JSON.stringify({
+	source: fs.readFileSync(fixturePath('for-cache') + '.js', 'utf8'),
+	options: {
+		pragma: 'h',
+		pragmaFrag: 'Fragment',
+		cache: true
+	},
+	version: packageJson.version
+});
+
+const hash = crypto.createHash('md4').update(contents).digest('hex');
+const diskCacheFile = `${diskCacheDirectory}/${hash}.js`;
 
 test('creates appropriate disk cache file', t => {
 	clearDiskCache();
