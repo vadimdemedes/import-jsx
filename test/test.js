@@ -88,7 +88,7 @@ const contents = JSON.stringify({
 	version: packageJson.version
 });
 
-const hash = crypto.createHash('md4').update(contents).digest('hex');
+const hash = crypto.createHash('md5').update(contents).digest('hex');
 const diskCacheFile = `${diskCacheDirectory}/${hash}.js`;
 
 test('creates appropriate disk cache file', t => {
