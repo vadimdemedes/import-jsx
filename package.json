@@ -32,7 +32,7 @@
     "@babel/plugin-proposal-object-rest-spread": "^7.5.5",
     "@babel/plugin-transform-destructuring": "^7.5.0",
     "@babel/plugin-transform-react-jsx": "^7.3.0",
-    "caller-path": "^2.0.0",
+    "caller-path": "^3.0.1",
     "find-cache-dir": "^3.2.0",
     "make-dir": "^3.0.2",
     "resolve-from": "^3.0.0",
