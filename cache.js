@@ -20,7 +20,7 @@ let directory;
  * @return {String}
  */
 const filename = (source, options, version) => {
-	const hash = crypto.createHash('md4');
+	const hash = crypto.createHash('md5');
 	const contents = JSON.stringify({source, options, version});
 	hash.update(contents);
 
