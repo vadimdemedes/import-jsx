@@ -1,106 +1,86 @@
 # import-jsx ![Build Status](https://github.com/vadimdemedes/import-jsx/workflows/test/badge.svg)
 
-> Require and transpile JSX on the fly
-
-- Doesn't install any `require()` hooks
-- Auto-detects React pragma (`React.createElement`) and falls back to `h` pragma supported by Preact and others
-- Caches transpiled sources by default
-- Bundles in [object rest spread](https://babeljs.io/docs/plugins/transform-object-rest-spread/) transform
+> Import and transpile JSX via [loader hooks](https://nodejs.org/dist/latest-v18.x/docs/api/esm.html#loaders). It doesn't transpile anything besides JSX and caches transpiled sources by default.
 
 ## Install
 
-```
-$ npm install --save import-jsx
+```console
+npm install import-jsx
 ```
 
 ## Usage
 
-```js
-const importJsx = require('import-jsx');
-
-const reactComponent = importJsx('./react');
-const preactComponent = importJsx('./preact');
-const customComponent = importJsx('./custom', {pragma: 'x'});
-```
-
-**React**
+**react-example.js**
 
 ```jsx
-const React = require('react');
-
-module.exports = <div />;
+const HelloWorld = () => <h1>Hello world</h1>;
 ```
 
-**Preact**
+```sh
+node --loader=import-jsx react-example.js
+```
+
+> **Note**:
+> `import-jsx` only works with ES modules.
+
+## Examples
+
+### React
+
+React is auto-detected by default and `react` will be auto-imported, if it's not already.
 
 ```jsx
-const {h} = require('preact');
-
-module.exports = <div />;
+const HelloWorld = () => <h1>Hello world</h1>;
 ```
 
-**Any JSX pragma**
+### Preact
+
+If an alternative library is used and exports `createElement`, like Preact, configure `import-jsx` to import it instead of React:
 
 ```jsx
-const x = (tagName, attrs, ...children) => {};
+/** @jsxImportSource preact */
 
-module.exports = <div />;
+const HelloWorld = () => <h1>Hello world</h1>;
 ```
 
-## API
+### Any JSX pragma
 
-### importJsx(moduleId, [options])
+For libraries not compatible with React's API, but which still support JSX, import it and configure `import-jsx` to use its pragma:
 
-#### moduleId
+```jsx
+/** @jsxRuntime classic */
+/** @jsx h */
+import h from 'vhtml';
 
-Type: `string`
+const HelloWorld = () => <h1>Hello world</h1>;
+```
 
-Module id.
+### CLI
 
-#### options
+`import-jsx` can be used to transpile JSX inside CLI entrypoints defined in `bin` section of `package.json` and their imported files.
 
-##### pragma
+For example, given this **package.json**:
 
-Type: `string`<br>
-Default: `h`
+```json
+{
+	"name": "my-amazing-cli",
+	"bin": "cli.js"
+}
+```
 
-Override [JSX pragma](https://jasonformat.com/wtf-is-jsx/).
+Insert this hashbang at the beginning of **cli.js**:
 
-##### pragmaFrag
+```jsx
+#!/usr/bin/env NODE_NO_WARNINGS=1 node --loader=import-jsx
 
-Type: `string`<br>
-Default: `Fragment`
+const HelloWorld = () => <h1>Hello world</h1>;
+```
 
-Override pragma for [JSX fragments](https://babeljs.io/docs/en/babel-plugin-transform-react-jsx#pragmafrag).
+### Disable cache
 
-##### cache
+`import-jsx` caches transpiled sources by default, so that the same file is transpiled only once.
+If that's not a desired behavior, turn off caching by setting `IMPORT_JSX_CACHE=0` or `IMPORT_JSX_CACHE=false` environment variable.
 
-Type: `boolean`<br>
-Default: `true`
-
-Cache transpiled source code.
-
-### importJsx.create([options])
-
-Factory method to create a version of `importJsx()` with pre-defined options.
-Useful when you need a custom pragma, but don't want to pass it along with each `importJsx()` call.
-
-#### options
-
-Type: `object`
-
-Options to pass to `importJsx()`.
-
-```js
-// Before
-const importJsx = require('import-jsx');
-
-importJsx('./a', {pragma: 'x'});
-importJsx('./b', {pragma: 'x'});
-
-// After
-const importJsx = require('import-jsx').create({pragma: 'x'});
-
-importJsx('./a');
-importJsx('./b');
+```console
+IMPORT_JSX_CACHE=0 node --loader=import-jsx my-code.js
 ```

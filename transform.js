@@ -1,33 +1,28 @@
-'use strict';
 // Only load these if compiled source is not already cached
 let babel;
-let jsxTransform;
+let reactPreset;
 
-const transform = (source, options, modulePath) => {
+const transform = async (source, filename) => {
 	if (!babel) {
-		babel = require('@babel/core');
-		jsxTransform = require('@babel/plugin-transform-react-jsx');
+		babel = await import('@babel/core');
+		reactPreset = await import('@babel/preset-react');
 	}
 
-	if (source.includes('React')) {
-		options.pragma = 'React.createElement';
-		options.pragmaFrag = 'React.Fragment';
-	}
-
-	const plugins = [
+	const presets = [
 		[
-			jsxTransform,
+			reactPreset.default,
 			{
-				pragma: options.pragma,
-				pragmaFrag: options.pragmaFrag,
-				useBuiltIns: true
+				runtime: 'automatic',
+				pure: false,
+				useBuiltIns: true,
+				useSpread: true
 			}
 		]
-	].filter(Boolean);
+	];
 
-	const result = babel.transformSync(source, {
-		plugins,
-		filename: modulePath,
+	const result = await babel.transformAsync(source, {
+		presets,
+		filename,
 		sourceMaps: 'inline',
 		babelrc: false,
 		configFile: false
@@ -36,4 +31,4 @@ const transform = (source, options, modulePath) => {
 	return result.code;
 };
 
-module.exports = transform;
+export default transform;

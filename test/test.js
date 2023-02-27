@@ -1,136 +1,119 @@
-'use strict';
-const fs = require('fs');
-const crypto = require('crypto');
-const test = require('ava');
-const findCacheDir = require('find-cache-dir');
-const rimraf = require('rimraf');
-const importJsx = require('..');
-const packageJson = require('../package.json');
+import path from 'node:path';
+import fs from 'node:fs';
+import crypto from 'node:crypto';
+import test from 'ava';
+import findCacheDir from 'find-cache-dir';
+import makeDir from 'make-dir';
+import {deleteAsync} from 'del';
+import {execa} from 'execa';
+import packageConfig from '../package.json' assert {type: 'json'};
 
-const fixturePath = name => `${__dirname}/fixtures/${name}`;
-const isCached = path => Object.keys(require.cache).includes(path + '.js');
-const diskCacheDirectory = findCacheDir({name: 'import-jsx'});
-const clearDiskCache = () => rimraf.sync(diskCacheDirectory);
+const cacheDirectory = findCacheDir({name: 'import-jsx'});
 
-// Hacky - delete from memory cache, so it will use the disk cache
-const deleteFromMemoryCache = name => {
-	delete require.cache[`${fixturePath(name)}.js`];
+const createCacheKey = (source, version) => {
+	const contents = JSON.stringify({source, version});
+	return crypto.createHash('md5').update(contents).digest('hex') + '.js';
 };
 
-test('throw when module id is missing', t => {
-	t.throws(() => importJsx(), TypeError, 'Expected a string');
-});
+const isCached = filename => {
+	const source = fs.readFileSync(filename, 'utf8');
+	const cacheKey = createCacheKey(source, packageConfig.version);
+	return fs.existsSync(path.join(cacheDirectory, cacheKey));
+};
 
-test('import react component and auto-detect pragma', t => {
-	t.notThrows(() => {
-		importJsx(fixturePath('react'));
+const importJsx = async (fixturePath, env) => {
+	const {stdout} = await execa('node', ['--loader=./index.js', fixturePath], {
+		env: {
+			NODE_NO_WARNINGS: '1',
+			...env
+		}
 	});
+
+	return stdout.trim();
+};
+
+const clearCache = () => {
+	return deleteAsync(cacheDirectory);
+};
+
+test.beforeEach(clearCache);
+
+test('automatic runtime - react', async t => {
+	const output = await importJsx('test/fixtures/automatic-react.js');
+	t.is(output, '<h1>Hello world</h1>');
 });
 
-test('import other component and use `h` pragma', t => {
-	t.notThrows(() => {
-		importJsx(fixturePath('other'));
-	});
+test('automatic runtime - preact', async t => {
+	const output = await importJsx('test/fixtures/automatic-preact.js');
+	t.is(output, '<h1>Hello world</h1>');
 });
 
-test('import custom component with custom pragma', t => {
-	t.notThrows(() => {
-		importJsx(fixturePath('custom'), {pragma: 'x'});
-	});
+test('classic runtime - react', async t => {
+	const output = await importJsx('test/fixtures/classic-react.js');
+	t.is(output, '<h1>Hello world</h1>');
 });
 
-test('create custom fn', t => {
-	const importCustom = importJsx.create({pragma: 'x'});
-
-	t.notThrows(() => {
-		importCustom(fixturePath('custom'));
-	});
+test('classic runtime - preact', async t => {
+	const output = await importJsx('test/fixtures/classic-preact.js');
+	t.is(output, '<h1>Hello world</h1>');
 });
 
-test.serial('cache', t => {
-	const path = fixturePath('react');
-
-	importJsx(path);
-	t.true(isCached(path));
+test('transform then cache', async t => {
+	await importJsx('test/fixtures/automatic-react.js');
+	t.true(isCached('test/fixtures/automatic-react.js'));
 });
 
-test.serial('disable cache', t => {
-	const path = fixturePath('react');
+test('use disk cache', async t => {
+	const source = fs.readFileSync('test/fixtures/disk-cache.js', 'utf8');
+	const cacheKey = createCacheKey(source, packageConfig.version);
 
-	importJsx(fixturePath('react'), {cache: false});
-	t.false(isCached(path));
-});
+	await makeDir(cacheDirectory);
 
-test('syntax error includes filename', t => {
-	const file = fixturePath('syntax-error.js');
-	const error = t.throws(() => importJsx(file));
-	t.is(error.message.split(':')[0], file);
-});
-
-test('works when loading a module with a non-JS ext', t => {
-	const file = fixturePath('jsx-ext.jsx');
-	t.true(importJsx(file).exty);
-});
-
-test('parse React fragments', t => {
-	t.notThrows(() => {
-		importJsx(fixturePath('react-fragment'));
-	});
-});
-
-const contents = JSON.stringify({
-	source: fs.readFileSync(fixturePath('for-cache') + '.js', 'utf8'),
-	options: {
-		pragma: 'h',
-		pragmaFrag: 'Fragment',
-		cache: true
-	},
-	version: packageJson.version
-});
-
-const hash = crypto.createHash('md5').update(contents).digest('hex');
-const diskCacheFile = `${diskCacheDirectory}/${hash}.js`;
-
-test('creates appropriate disk cache file', t => {
-	clearDiskCache();
-	t.false(fs.existsSync(diskCacheFile));
-
-	importJsx(fixturePath('for-cache'));
-	t.true(fs.existsSync(diskCacheFile));
-});
-
-test('use disk cache', t => {
-	clearDiskCache();
-
-	deleteFromMemoryCache('for-cache');
-	const text = importJsx(fixturePath('for-cache'));
-	t.is(text, 'For testing the disk cache!');
-
-	const contents = fs.readFileSync(diskCacheFile, 'utf8');
 	fs.writeFileSync(
-		diskCacheFile,
-		contents.replace('For testing', 'For really testing')
+		path.join(cacheDirectory, cacheKey),
+		source.replace('not ', '')
 	);
 
-	deleteFromMemoryCache('for-cache');
-	const text2 = importJsx(fixturePath('for-cache'));
-	t.is(text2, 'For really testing the disk cache!');
+	const output = await importJsx('test/fixtures/disk-cache.js');
+	t.is(output, 'This is from disk');
 });
 
-test('avoid use disk cache when cache is disabled', t => {
-	clearDiskCache();
+test('disable cache', async t => {
+	await importJsx('test/fixtures/automatic-react.js', {
+		IMPORT_JSX_CACHE: '0'
+	});
 
-	deleteFromMemoryCache('for-cache');
-	const text = importJsx(fixturePath('for-cache'));
-	t.is(text, 'For testing the disk cache!');
+	t.false(isCached('test/fixtures/automatic-react.js'));
 
-	const contents = fs.readFileSync(diskCacheFile, 'utf8');
+	await importJsx('test/fixtures/automatic-react.js', {
+		IMPORT_JSX_CACHE: 'false'
+	});
+
+	t.false(isCached('test/fixtures/automatic-react.js'));
+});
+
+test('avoid using disk cache when cache is disabled', async t => {
+	const source = fs.readFileSync('test/fixtures/disk-cache.js', 'utf8');
+	const cacheKey = createCacheKey(source, packageConfig.version);
+
+	await makeDir(cacheDirectory);
+
 	fs.writeFileSync(
-		diskCacheFile,
-		contents.replace('For testing', 'For really testing')
+		path.join(cacheDirectory, cacheKey),
+		source.replace('not ', '')
 	);
 
-	deleteFromMemoryCache('for-cache');
-	const text2 = importJsx(fixturePath('for-cache'), {cache: false});
-	t.is(text2, 'For testing the disk cache!');
+	const output = await importJsx('test/fixtures/disk-cache.js', {
+		IMPORT_JSX_CACHE: 'false'
+	});
+
+	t.is(output, 'This is not from disk');
+});
+
+test('syntax errors', async t => {
+	const error = await t.throwsAsync(async () => {
+		await importJsx('test/fixtures/syntax-error.js');
+	});
+
+	t.true(error.stderr.includes('SyntaxError: Unexpected identifier'));
 });
