@@ -10,18 +10,18 @@ npm install import-jsx
 
 ## Usage
 
-**react-example.js**
-
-```jsx
-const HelloWorld = () => <h1>Hello world</h1>;
-```
+> **Note**:
+> `import-jsx` only works with ES modules.
 
 ```sh
 node --loader=import-jsx react-example.js
 ```
 
-> **Note**:
-> `import-jsx` only works with ES modules.
+**react-example.js**
+
+```jsx
+const HelloWorld = () => <h1>Hello world</h1>;
+```
 
 ## Examples
 
