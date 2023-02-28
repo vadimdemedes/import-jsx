@@ -1,62 +1,50 @@
-'use strict';
 // Based on https://github.com/babel/babel-loader/blob/15df92fafd58ec53ba88efa22de7b2cee5e65fcc/src/cache.js
-const fs = require('fs');
-const os = require('os');
-const path = require('path');
-const crypto = require('crypto');
-const makeDir = require('make-dir');
-const findCacheDir = require('find-cache-dir');
-const transform = require('./transform');
+import fs from 'node:fs/promises';
+import os from 'node:os';
+import path from 'node:path';
+import crypto from 'node:crypto';
+import makeDir from 'make-dir';
+import findCacheDir from 'find-cache-dir';
+import packageConfig from './package.json' assert {type: 'json'};
 
-let directory;
+const cacheDirectory = findCacheDir({name: 'import-jsx'}) || os.tmpdir();
 
-/**
- * Build the filename for the cached file
- *
- * @param  {String} source  Original contents of the file to be cached
- * @param  {Object} options Options passed to importJsx
- * @param  {String} version Version of import-jsx
- *
- * @return {String}
- */
-const filename = (source, options, version) => {
-	const hash = crypto.createHash('md5');
-	const contents = JSON.stringify({source, options, version});
-	hash.update(contents);
+export const cacheKeyFromSource = source => {
+	const contents = JSON.stringify({
+		source,
+		version: packageConfig.version
+	});
 
-	return hash.digest('hex') + '.js';
+	return crypto.createHash('md5').update(contents).digest('hex') + '.js';
 };
 
-/**
- * Handle the cache
- *
- * @params {String} directory
- * @params {Object} parameters
- */
-const handleCache = (directory, parameters) => {
-	const {modulePath, options, source, version} = parameters;
+const cachedTransform = async (
+	transform,
+	parameters,
+	directory = cacheDirectory
+) => {
+	const {enabled, key} = parameters;
 
-	if (!options.cache) {
-		return transform(source, options, modulePath);
+	if (!enabled) {
+		return transform();
 	}
 
-	const file = path.join(directory, filename(source, options, version));
+	const file = path.join(directory, key);
 
 	try {
 		// No errors mean that the file was previously cached
 		// we just need to return it
-		return fs.readFileSync(file).toString();
-		// eslint-disable-next-line no-unused-vars
-	} catch (error) {}
+		return await fs.readFile(file, 'utf8');
+	} catch {}
 
 	const fallback = directory !== os.tmpdir();
 
 	// Make sure the directory exists.
 	try {
-		makeDir.sync(directory);
+		await makeDir(directory);
 	} catch (error) {
 		if (fallback) {
-			return handleCache(os.tmpdir(), parameters);
+			return cachedTransform(transform, parameters, os.tmpdir());
 		}
 
 		throw error;
@@ -64,14 +52,14 @@ const handleCache = (directory, parameters) => {
 
 	// Otherwise just transform the file
 	// return it to the user asap and write it in cache
-	const result = transform(source, options, modulePath);
+	const result = await transform();
 
 	try {
-		fs.writeFileSync(file, result);
+		await fs.writeFile(file, result);
 	} catch (error) {
 		if (fallback) {
 			// Fallback to tmpdir if node_modules folder not writable
-			return handleCache(os.tmpdir(), parameters);
+			return cachedTransform(transform, parameters, os.tmpdir());
 		}
 
 		throw error;
@@ -80,19 +68,4 @@ const handleCache = (directory, parameters) => {
 	return result;
 };
 
-/**
- * Retrieve file from cache, or create a new one for future reads
- *
- * @param  {Object}   parameters
- * @param  {String}   parameters.modulePath
- * @param  {String}   parameters.source     Original contents of the file to be cached
- * @param  {Object}   parameters.options    Options passed to importJsx
- * @param  {String}   parameters.version    Version of import-jsx
- */
-module.exports = parameters => {
-	if (!directory) {
-		directory = findCacheDir({name: 'import-jsx'}) || os.tmpdir();
-	}
-
-	return handleCache(directory, parameters);
-};
+export default cachedTransform;

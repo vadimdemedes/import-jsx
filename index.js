@@ -1,67 +1,43 @@
-'use strict';
-const path = require('path');
-const resolveFrom = require('resolve-from');
-const callerPath = require('caller-path');
-const cache = require('./cache');
-const {version} = require('./package.json');
+import process from 'node:process';
+import cachedTransform, {cacheKeyFromSource} from './cache.js';
+import transform from './transform.js';
 
-const importJsx = (moduleId, options) => {
-	if (typeof moduleId !== 'string') {
-		throw new TypeError('Expected a string');
+export const load = async (url, _context, nextLoad) => {
+	if (!url.endsWith('.js') || url.includes('node_modules')) {
+		return nextLoad(url);
 	}
 
-	options = {
-		pragma: 'h',
-		pragmaFrag: 'Fragment',
-		cache: true,
-		...options
-	};
+	const result = await nextLoad(url);
 
-	const modulePath = resolveFrom(path.dirname(callerPath()), moduleId);
-
-	if (!options.cache) {
-		delete require.cache[modulePath];
+	if (!result.source) {
+		return result;
 	}
 
-	// If they used .jsx, and there's already a .jsx, then hook there
-	// Otherwise, hook node's default .js
-	const ext = path.extname(modulePath);
-	const hookExt = require.extensions[ext] ? ext : '.js';
+	const source = result.source.toString();
 
-	const oldExtension = require.extensions[hookExt];
+	const useCache =
+		process.env.IMPORT_JSX_CACHE !== '0' &&
+		process.env.IMPORT_JSX_CACHE !== 'false';
 
-	require.extensions[hookExt] = module => {
-		const oldCompile = module._compile;
+	const cacheKey = cacheKeyFromSource(source);
 
-		module._compile = source => {
-			const result = cache({
-				modulePath,
-				options,
-				source,
-				version
-			});
+	try {
+		const transformedSource = await cachedTransform(
+			() => {
+				return transform(source, url);
+			},
+			{
+				enabled: useCache,
+				key: cacheKey
+			}
+		);
 
-			module._compile = oldCompile;
-			module._compile(result, modulePath);
+		return {
+			source: transformedSource,
+			format: 'module',
+			shortCircuit: true
 		};
-
-		require.extensions[hookExt] = oldExtension;
-		oldExtension(module, modulePath);
-	};
-
-	const m = require(modulePath);
-	require.extensions[hookExt] = oldExtension;
-
-	if (!options.cache) {
-		delete require.cache[modulePath];
+	} catch {
+		return nextLoad(url);
 	}
-
-	return m;
-};
-
-module.exports = importJsx;
-module.exports.default = importJsx;
-
-module.exports.create = options => {
-	return moduleId => importJsx(moduleId, options);
 };
