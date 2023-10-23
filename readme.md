@@ -55,27 +55,6 @@ import h from 'vhtml';
 const HelloWorld = () => <h1>Hello world</h1>;
 ```
 
-### CLI
-
-`import-jsx` can be used to transpile JSX inside CLI entrypoints defined in `bin` section of `package.json` and their imported files.
-
-For example, given this **package.json**:
-
-```json
-{
-	"name": "my-amazing-cli",
-	"bin": "cli.js"
-}
-```
-
-Insert this hashbang at the beginning of **cli.js**:
-
-```jsx
-#!/usr/bin/env NODE_NO_WARNINGS=1 node --loader=import-jsx
-
-const HelloWorld = () => <h1>Hello world</h1>;
-```
-
 ### Disable cache
 
 `import-jsx` caches transpiled sources by default, so that the same file is transpiled only once.
